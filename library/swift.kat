@@ -1,0 +1,159 @@
+function range(max)
+{
+    items = [];
+    
+    for (n = 0; n < max; n++)
+        items.Add(n);
+    
+    return items;
+}
+
+module Swift
+{
+    class Expression;
+    
+    class NumberExpression : Expression
+    {
+        pattern
+        {
+            number:Number
+        }
+        
+        method Get()
+        {
+            return this.number.Value;
+        }
+
+        method GetType()
+        {
+            return "Int";
+        }
+    }
+
+    class StringExpression : Expression
+    {
+        pattern
+        {
+            string:String
+        }
+        
+        method Get()
+        {
+            return this.string.Text;
+        }
+
+        method GetType()
+        {
+            return "String";
+        }
+    }
+    
+    class ReturnStatement : Statement
+    {
+        pattern
+        {
+            "return" expression:Expression ";"?
+        }
+        
+        method Run()
+        {
+            return this.expression.Get...();
+        }
+
+        method GetType()
+        {
+            return this.expression.GetType...();
+        }
+    }
+
+    class PrintStatement : Statement
+    {
+        pattern
+        {
+            "print" "(" expression:Expression ")"
+        }
+        
+        method Run()
+        {
+            print this.expression.Get...();
+        }
+    }
+    
+    class FunctionStatement : Statement
+    {
+        pattern
+        {
+            "func" name:Name "(" parameters:(Name ("," Expression)+)? ")"
+            "->" returnType:Name "{"
+            body:(Statement)+
+            "}"
+        }
+        
+        method Call(parameters)
+        {
+            for (n = 0; n < parameters.Length; n++)
+                scope.names[this.parameters[n].name] = parameters[n];
+
+            for (statement in this.body) {
+                _returnValue = statement.Run();
+                _returnType = statement.GetType();
+            }
+
+            if(_returnType == this.returnType.name)
+                return _returnValue;
+            else
+            {
+                return "Invalid return type: " + _returnType;
+            }
+        }
+        
+        method Run()
+        {
+            globals.names[this.name.name] = this;
+
+            for (statement in this.body) {
+                _returnType = statement;
+            }
+
+            if(_returnType.GetType() != this.returnType.name)
+            {
+                throw "Invalid return type: got " + _returnType.GetType() +", expected " + this.returnType.name + "\n" + _returnType.Source.ToString();
+            }
+        }
+    }
+    
+    
+    
+    class TopLevelStatement
+    {
+        pattern
+        {
+            statement:Statement
+        }
+        
+        method Parsed()
+        {
+            this.statement.Run...();
+        }
+    }
+    
+    class Program
+    {
+        pattern
+        {
+            statements:TopLevelStatement*
+        }
+    }
+}
+
+class SwiftStatement : Statement
+{
+    pattern
+    {
+        "swift" "{" Swift.Program "}"
+    }
+
+    method Run()
+    {
+    }
+}

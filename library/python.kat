@@ -258,7 +258,7 @@ module Python
     {
         pattern
         {
-            Indentation.Indentation "print" expression:Expression
+            Indentation.Indentation "print" "(" expression:Expression ")"
                 Indentation.EndOfLine
         }
         
@@ -312,7 +312,7 @@ module Python
     {
         pattern
         {
-            Indentation.Indentation "return" expression:Expression
+            Indentation.Indentation ("return" | "lovely") expression:Expression
                 Indentation.EndOfLine
         }
         

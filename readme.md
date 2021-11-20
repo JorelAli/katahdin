@@ -1,3 +1,15 @@
+# Katahdin
+
+## Current project aims
+
+- Add Swift syntax
+- Play around more with this awesome project!
+
+## Original [katahdin](https://github.com/chrisseaton/katahdin) readme.txt below
+
+-----
+
+```
                                K A T A H D I N
                                        
                                  Chris Seaton
@@ -66,3 +78,4 @@ License
         THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
         (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
         OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```

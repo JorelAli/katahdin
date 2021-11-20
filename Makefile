@@ -1,4 +1,4 @@
-CSC = gmcs -debug
+CSC = mcs -debug
 
 all : interpreter debugger
 debugger : Katahdin.Debugger.exe

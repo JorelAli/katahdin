@@ -1,0 +1,10 @@
+import "swift.kat"
+
+swift
+{
+    func getRandom() -> Int {
+        return 4
+    }
+
+    print(getRandom())
+}
