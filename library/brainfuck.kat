@@ -1,0 +1,151 @@
+
+module Brainfuck
+{
+
+    function or(e1, e2) {
+        if(e1) {
+            return true;
+        }
+        if(e2) {
+            return true;
+        }
+        return false;
+    }
+
+    class BrainfuckCode
+    {
+        field stack;             // Memory stack
+        field index;             // Stack pointer
+        field output;            // Output buffer
+        field inputIndex;        // Input buffer pointer
+        field bracketPairNumber; // What bracket are we looking at? [0 [1 ] ]
+
+        pattern
+        {
+            option buildTextNodes = true;
+            ops:("." | "+" | "-" | "[" | "]" | "," | "<" | ">")+
+        }
+
+        method Run(input)
+        {
+            this.stack = [];
+            this.index = 0;
+            this.output = "";
+            this.inputIndex = 0;
+            this.bracketPairNumber = 0;
+
+            Brainfuck.or(true, false);
+
+            // Construct a mapping of square brackets to their corresponding
+            // index in the list.
+            jumpMap = {};
+            for(i = 0; i < this.ops.Count; i++)
+            {
+                if (this.ops[i] == "[")
+                {
+                    jumpMap[i] = this.stack.Count;
+                    this.stack.Add(0);
+                }
+                else if (this.ops[i] == "]")
+                {
+                    jumpMap[this.stack.Count] = i;
+                }
+            }
+
+            for(i = 0; i < this.ops.Count; i++)
+            {
+                if(this.ops[i] == "+") {
+                    if(this.stack.Count == this.index)
+                    {
+                        this.stack.Add(0);
+                    }
+                    this.stack[this.index] = this.stack[this.index]++;
+                } else if(this.ops[i] == "-") {
+                    this.stack[this.index] = this.stack[this.index]--;
+                } else if(this.ops[i] == ">") {
+                    this.index = this.index++;
+                } else if(this.ops[i] == "<") {
+                    this.index = this.index--;
+                } else if(this.ops[i] == ".") {
+                    this.output = this.output + System.Convert.ToChar(this.stack[this.index]).ToString();
+                } else if(this.ops[i] == ",") {
+                    this.stack[this.index] = System.Convert.ToInt32(input[this.inputIndex]);
+                    this.inputIndex = this.inputIndex++;
+                } else if(this.ops[i] == "[") {
+                    if(this.stack[this.index] == 0) {
+                        // https://www.geeksforgeeks.org/brainfuck-interpreter-java/
+                        i++;
+                        while(Brainfuck.or(this.bracketPairNumber > 0, this.ops[i] != "]")) {
+                            if(this.ops[i] == "[") {
+                                this.bracketPairNumber++;
+                            } else if(this.ops[i] == "]") {
+                                this.bracketPairNumber--;
+                            }
+                            i++;
+                        }
+                    }
+                } else if(this.ops[i] == "]") {
+                    if(this.stack[this.index] != 0) {
+                        i--;
+                        while(Brainfuck.or(this.bracketPairNumber > 0, this.ops[i] != "[")) {
+                            if(this.ops[i] == "]") {
+                                this.bracketPairNumber++;
+                            } else if(this.ops[i] == "[") {
+                                this.bracketPairNumber--;
+                            }
+                            i--;
+                        }
+                        i--;
+                    }
+                }
+            }
+
+            if(this.output.Length > 0) {
+                print this.output;
+            }
+
+        }
+    }
+
+    class Program
+    {
+        // Brainfuck can have "input". Typically, this is input as and when
+        // it is needed, but it can also be provided in full and the
+        // program then reads characters as and when it needs it. We'll use
+        // either String (a string literal provided to the program) or a 
+        // Name (a variable name provided to the program which is in global)
+        // scope.
+        pattern
+        {
+            (input:String | inputName:Name)? "{" code:BrainfuckCode "}"
+        }
+
+        method Parsed()
+        {
+            input = "";
+            if(this.input == null) {
+                input = "";
+            } else {
+                input = this.input.Text;
+            }
+
+            if(this.inputName != null) {
+                input = globals.names[this.inputName.name].Get();
+            }
+
+            this.code.Run(input);
+        }
+    }
+}
+
+class BrainfuckStatement : Statement
+{
+    pattern
+    {
+        ("brainfuck" | "🧠👉👌") Brainfuck.Program
+    }
+
+    method Run()
+    {
+    }
+}

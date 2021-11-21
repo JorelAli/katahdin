@@ -2,6 +2,7 @@ import "fortran.kat";
 import "python.kat";
 import "swift.kat";
 import "fl.kat";
+import "brainfuck.kat";
 
 fortran
 {
@@ -40,6 +41,22 @@ fl {
     flGetRandom2 = RANDOM@1 128 0;
     
     aLambda = x -> x;
+}
+
+brainfuck " Hello!" {
+    +++++ +++++
+    +++++ +++++
+    +++++ +++++
+    +++++ +++++
+    +++++ +++++
+    +++++ +++++
+    +++++.....
+    ,.,.,.,.,.,.,.
+}
+
+// Taken straight from Wikipedia: https://en.wikipedia.org/wiki/Brainfuck#Hello_World!
+brainfuck {
+    ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
 }
 
 python
