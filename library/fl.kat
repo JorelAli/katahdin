@@ -1,5 +1,10 @@
 module Fl
 {
+
+    ///////////////////////
+    // BASIC EXPRESSIONS //
+    ///////////////////////
+
     class Expression;
     
     class NumberExpression : Expression
@@ -27,6 +32,94 @@ module Fl
             return this.string.Text;
         }
     }
+
+    /////////////////////
+    // BASIC OPERATORS //
+    /////////////////////
+
+    class MultiplicativeExpression : Expression;
+    
+    class MulExpression : MultiplicativeExpression
+    {
+        pattern
+        {
+            option leftRecursive;
+            a:Expression "*" b:Expression
+        }
+        
+        method Get()
+        {
+            return this.a.Get...() * this.b.Get...();
+        }
+    }
+    
+    class DivExpression : MultiplicativeExpression
+    {
+        pattern
+        {
+            option leftRecursive;
+            a:Expression "/" b:Expression
+        }
+        
+        method Get()
+        {
+            return this.a.Get...() / this.b.Get...();
+        }
+    }
+    
+    precedence MultiplicativeExpression < CallExpression;
+    
+    class AdditiveExpression : Expression;
+    
+    class AddExpression : AdditiveExpression
+    {
+        pattern
+        {
+            option leftRecursive;
+            a:Expression "+" b:Expression
+        }
+        
+        method Get()
+        {
+            return this.a.Get...() + this.b.Get...();
+        }
+    }
+    
+    class SubExpression : AdditiveExpression
+    {
+        pattern
+        {
+            option leftRecursive;
+            a:Expression "-" b:Expression
+        }
+        
+        method Get()
+        {
+            return this.a.Get...() - this.b.Get...();
+        }
+    }
+
+    precedence AdditiveExpression < MultiplicativeExpression;
+    
+    class EqualityExpression : Expression
+    {
+        pattern
+        {
+            option leftRecursive;
+            a:Expression "==" b:Expression
+        }
+        
+        method Get()
+        {
+            return this.a.Get...() == this.b.Get...();
+        }
+    }
+
+    precedence EqualityExpression < AdditiveExpression;
+
+    ///////////////////////////
+    // FUNCTIONS AND LAMBDAS //
+    ///////////////////////////
 
     class FunctionCall : Expression
     {
@@ -73,7 +166,7 @@ module Fl
     {
         pattern
         {
-            "lambda" param:Name "->" expr:Expression
+            param:Name "->" expr:Expression
         }
 
         method Get()
