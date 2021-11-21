@@ -1,6 +1,7 @@
 import "fortran.kat";
 import "python.kat";
 import "swift.kat";
+import "fl.kat";
 
 fortran
 {
@@ -24,9 +25,16 @@ swift
     }
 }
 
+fl {
+    numberTwo = 2
+    aLambda = lambda x -> x
+}
+
 python
 {
     print(getRandom())
+    print(numberTwo())
+    print(aLambda(200))
 
     seed = 128
     randx = 0

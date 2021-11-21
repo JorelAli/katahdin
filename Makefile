@@ -26,10 +26,25 @@ Katahdin.Tests.dll : Katahdin.dll \
 	$(CSC) -target:library -out:$@ -pkg:mono-nunit -r:Katahdin.dll \
                                                     tests/runtime/*.cs
 
+# Use this for Linux
+# Katahdin.Debugger.exe : Katahdin.dll \
+#                         Katahdin.Debugger/*.cs \
+# 	                    Katahdin.Debugger/ObjectViewer/*.cs
+# 	$(CSC) -out:$@ -pkg:gtk-sharp-2.0 -r:Katahdin.dll \
+#                                       Katahdin.Debugger/*.cs \
+#                                       Katahdin.Debugger/ObjectViewer/*.cs
+
+# For Windows, make sure to Download Gtk# from here: https://www.mono-project.com/download/stable/
+# See https://stackoverflow.com/a/33592570/4779071
 Katahdin.Debugger.exe : Katahdin.dll \
                         Katahdin.Debugger/*.cs \
 	                    Katahdin.Debugger/ObjectViewer/*.cs
-	$(CSC) -out:$@ -pkg:gtk-sharp-2.0 -r:Katahdin.dll \
+	$(CSC) -out:$@ \
+          -r:"C:\Program Files (x86)\GtkSharp\2.12\lib\gtk-sharp-2.0\gtk-sharp.dll" \
+          -r:"C:\Program Files (x86)\GtkSharp\2.12\lib\gtk-sharp-2.0\gdk-sharp.dll" \
+          -r:"C:\Program Files (x86)\GtkSharp\2.12\lib\gtk-sharp-2.0\atk-sharp.dll" \
+          -r:"C:\Program Files (x86)\GtkSharp\2.12\lib\gtk-sharp-2.0\glib-sharp.dll" \
+          -r:Katahdin.dll \
                                       Katahdin.Debugger/*.cs \
                                       Katahdin.Debugger/ObjectViewer/*.cs
 

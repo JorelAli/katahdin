@@ -1,0 +1,205 @@
+module Fl
+{
+    class Expression;
+    
+    class NumberExpression : Expression
+    {
+        pattern
+        {
+            number:Number
+        }
+        
+        method Get()
+        {
+            return this.number.Value;
+        }
+    }
+
+    class StringExpression : Expression
+    {
+        pattern
+        {
+            string:String
+        }
+        
+        method Get()
+        {
+            return this.string.Text;
+        }
+    }
+
+    class FunctionCall : Expression
+    {
+        pattern
+        {
+            name:Name params:(Expression)*
+        }
+
+        method Get()
+        {
+            parameterValues = [];
+
+            for(param in this.params) {
+                parameterValues.Add(param.Get...());
+            }
+            parameterValues = parameterValues.ToArray();
+
+            // A "function call" with no parameters is just a variable.
+            if(parameterValues.Length == 0) {
+                _returnValue = scope.Parent.names[this.name.name];
+            }
+            else {
+                refParams = null;
+                _returnValue = Katahdin.CodeTree.CallNode.Call(
+                    this.callable.Get...(),
+                    parameterValues,
+                    true,
+                    refParams);
+                
+                if (refParams != null)
+                {
+                    for (n = 0; n < this.parameters.Count; n++)
+                    {
+                        if (refParams[n])
+                            this.parameters[n].Set...(parameterValues[n]);
+                    }
+                }
+            }
+            return _returnValue;
+        }
+    }
+
+    class LambdaStatement : Expression
+    {
+        pattern
+        {
+            "lambda" param:Name "->" expr:Expression
+        }
+
+        method Get()
+        {
+           return this.expr.Get...();
+        }
+
+        method Call(parameters)
+        {
+            scope.names[this.param.name] = parameters[0];
+            return this.expr.Get();
+        }
+    }
+    
+    class FunctionStatement : Statement
+    {
+        pattern
+        {
+            functionName:Name "=" expression:Expression
+        }
+        
+        method Call(parameters)
+        {
+            if(this.expression is globals.Fl.LambdaStatement) {
+                // We invoke this lambda with the parameters
+                return this.expression.Call...(parameters);
+            } else {
+                // Nice and easy, just return what it is
+                return this.expression.Get...();
+            }
+        }
+
+        method Run()
+        {
+            globals.names[this.functionName.name] = this;
+        }
+    }
+
+    class PrintStatement : Statement
+    {
+        pattern
+        {
+            "print" str:StringExpression
+        }
+        
+        method Run()
+        {
+            print this.str.Get...();
+        }
+    }
+    
+    /*class FunctionStatement : Statement
+    {
+        pattern
+        {
+            "func" name:Name "(" parameters:(Name ("," Expression)+)? ")"
+            "->" returnType:Name "{"
+            body:(Statement)+
+            "}"
+        }
+        
+        method Call(parameters)
+        {
+            for (n = 0; n < parameters.Length; n++)
+                scope.names[this.parameters[n].name] = parameters[n];
+
+            for (statement in this.body) {
+                _returnValue = statement.Run();
+                _returnType = statement.GetType();
+            }
+
+            if(_returnType == this.returnType.name)
+                return _returnValue;
+            else
+            {
+                return "Invalid return type: " + _returnType;
+            }
+        }
+        
+        method Run()
+        {
+            globals.names[this.name.name] = this;
+
+            for (statement in this.body) {
+                _returnType = statement;
+            }
+
+            if(_returnType.GetType() != this.returnType.name)
+            {
+                throw "Invalid return type: got " + _returnType.GetType() +", expected " + this.returnType.name + "\n" + _returnType.Source.ToString();
+            }
+        }
+    }*/
+    
+    
+    
+    class TopLevelStatement
+    {
+        pattern
+        {
+            statement:Statement
+        }
+        
+        method Parsed()
+        {
+            this.statement.Run...();
+        }
+    }
+    
+    class Program
+    {
+        pattern
+        {
+            statements:TopLevelStatement*
+        }
+    }
+}
+
+class FlStatement : Statement
+{
+    pattern
+    {
+        "fl" "{" Fl.Program "}"
+    }
+
+    method Run()
+    {
+    }
+}
