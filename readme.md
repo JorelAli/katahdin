@@ -5,6 +5,49 @@
 - Add Swift syntax
 - Play around more with this awesome project!
 
+## Important Windows setup info
+
+### Paths (System.Net not found)
+
+I haven't figured out how to get the `$KATAHDIN` environment variable to cooperate with me, so until I figure that out, putting `System.Net.dll` in the same directory as your program allows it to be imported. This can be found in any of these folders (ordered from normal to stupid - the last one requires you to have Paint.NET installed. Yes, this is stupid, please don't do this!):
+
+```
+C:\Program Files\Mono\lib\mono\2.0-api\System.Net.dll
+C:\Program Files\Mono\lib\mono\gac\System.Net\4.0.0.0__b03f5f7f11d50a3a\System.Net.dll
+C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Net.dll
+C:\Program Files\paint.net\System.Net.dll
+```
+
+### URL requests
+
+Making use of URL requests via `System.Net.HttpWebRequest` is a pain on Windows due to SSL issues. If you run into an issue like this:
+
+```
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.Net.WebException: Error: TrustFailure (Authentication failed, see inner exception.) ---> System.Security.Authentication.AuthenticationException: Authentication failed, see inner exception. ---> Mono.Btls.MonoBtlsException: Ssl error:1000007d:SSL routines:OPENSSL_internal:CERTIFICATE_VERIFY_FAILED        
+  at D:\j\workspace\build-package-win-mono\2020-02\external\boringssl\ssl\handshake_client.c:1132
+  at Mono.Btls.MonoBtlsContext.ProcessHandshake () [0x00048] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at Mono.Net.Security.MobileAuthenticatedStream.ProcessHandshake (Mono.Net.Security.AsyncOperationStatus status, System.Boolean renegotiate) [0x000da] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at (wrapper remoting-invoke-with-check) Mono.Net.Security.MobileAuthenticatedStream.ProcessHandshake(Mono.Net.Security.AsyncOperationStatus,bool)
+  at Mono.Net.Security.AsyncHandshakeRequest.Run (Mono.Net.Security.AsyncOperationStatus status) [0x00006] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at Mono.Net.Security.AsyncProtocolRequest.ProcessOperation (System.Threading.CancellationToken cancellationToken) [0x000fc] in <2833956e84fa47a69fb5c0a42a95869c>:0
+   --- End of inner exception stack trace ---
+  at Mono.Net.Security.MobileAuthenticatedStream.ProcessAuthentication (System.Boolean runSynchronously, Mono.Net.Security.MonoSslAuthenticationOptions options, System.Threading.CancellationToken cancellationToken) [0x00262] in <2833956e84fa47a69fb5c0a42a95869c>:0
+
+  at Mono.Net.Security.MonoTlsStream.CreateStream (System.Net.WebConnectionTunnel tunnel, System.Threading.CancellationToken cancellationToken) [0x0016a] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at System.Net.WebConnection.CreateStream (System.Net.WebOperation operation, System.Boolean reused, System.Threading.CancellationToken cancellationToken) [0x001ba] in <2833956e84fa47a69fb5c0a42a95869c>:0
+   --- End of inner exception stack trace ---
+  at System.Net.WebConnection.CreateStream (System.Net.WebOperation operation, System.Boolean reused, System.Threading.CancellationToken cancellationToken) [0x0021a] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at System.Net.WebConnection.InitConnection (System.Net.WebOperation operation, System.Threading.CancellationToken cancellationToken) [0x00141] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at System.Net.WebOperation.Run () [0x0009a] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at System.Net.WebCompletionSource`1[T].WaitForCompletion () [0x00094] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at System.Net.HttpWebRequest.RunWithTimeoutWorker[T] (System.Threading.Tasks.Task`1[TResult] workerTask, System.Int32 timeout, System.Action abort, System.Func`1[TResult] aborted, System.Threading.CancellationTokenSource cts) [0x000f8] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at System.Net.HttpWebRequest.GetResponse () [0x00016] in <2833956e84fa47a69fb5c0a42a95869c>:0
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <32116eccb94d4ed685ca661d98e36637>:0
+```
+
+To fix this, you need to use Mono's `cert-sync` program to sync the Mono internal SSL certificate store with Windows' certificate store [(see here)](https://www.mono-project.com/docs/about-mono/releases/3.12.0/#cert-sync). This sounds good, but _doesn't work on Windows_ because Windows' certificate store is only present in the registry and not on the file system. This can be circumvented using curl's list of certificates from https://curl.haxx.se/ca/cacert.pem [(source)](https://mono.github.io/mail-archives/mono-list/2017-April/052433.html) and then running `cert-sync --user cacert.pem`.
+
 ## Original [katahdin](https://github.com/chrisseaton/katahdin) readme.txt below
 
 -----

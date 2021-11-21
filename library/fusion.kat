@@ -4,6 +4,10 @@ import "swift.kat";
 import "fl.kat";
 import "brainfuck.kat";
 
+// GET/POST requests
+// Python's List comprehensions
+// 
+
 fortran
 {
       SUBROUTINE RANDOM(SEED, RANDX)
@@ -66,6 +70,8 @@ python
     print(aLambda(200))
     print("Fl get random: " + flGetRandom())
     print("Fl get random2: " + flGetRandom2())
+
+    print(httpget("https://www.example.com"))
 
     seed = 128
     randx = 0

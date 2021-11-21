@@ -1,4 +1,5 @@
 import "indentation.kat";
+import "System.Net.dll";
 
 function range(max)
 {
@@ -9,6 +10,15 @@ function range(max)
     
     return items;
 }
+
+function httpget(url)
+{
+    request = System.Net.HttpWebRequest.Create(url);  
+    response = request.GetResponse();
+    reader = new System.IO.StreamReader(response.GetResponseStream());
+    return reader.ReadToEnd();
+}
+
 
 module Python
 {
