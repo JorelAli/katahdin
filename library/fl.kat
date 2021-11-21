@@ -9,14 +9,29 @@ module Fl
     
     class NumberExpression : Expression
     {
+        // Very stupid, but hilariously stupid.
+        // "Allows" running Fortran code from Fl
+
+        field numericalValue;
+
         pattern
         {
             number:Number
         }
+
+        method Parsed()
+        {
+            this.numericalValue = this.number.Value;
+        }
         
         method Get()
         {
-            return this.number.Value;
+            return this.numericalValue;
+        }
+
+        method Set(value)
+        {
+            this.numericalValue = value;
         }
     }
 
@@ -125,26 +140,45 @@ module Fl
     {
         pattern
         {
-            name:Name params:(Expression)*
+            name:Name parameters:(Expression)*
         }
 
         method Get()
         {
             parameterValues = [];
-
-            for(param in this.params) {
+            for(param in this.parameters) {
                 parameterValues.Add(param.Get...());
             }
             parameterValues = parameterValues.ToArray();
 
             // A "function call" with no parameters is just a variable.
             if(parameterValues.Length == 0) {
-                _returnValue = scope.Parent.names[this.name.name];
+                if(scope.Parent.names.ContainsKey(this.name.name)) {
+                    _returnValue = scope.Parent.names[this.name.name];
+                } else {
+                    refParams = null;
+                    _returnValue = Katahdin.CodeTree.CallNode.Call(
+                        globals.names[this.name.name],
+                        parameterValues,
+                        true,
+                        refParams);
+                    
+                    if (refParams != null)
+                    {
+                        for (n = 0; n < this.parameters.Count; n++)
+                        {
+                            if (refParams[n])
+                                this.parameters[n].Set...(parameterValues[n]);
+                        }
+                    }
+                }
+                
             }
             else {
+                // Please don't actually call this, everything blows up
                 refParams = null;
                 _returnValue = Katahdin.CodeTree.CallNode.Call(
-                    this.callable.Get...(),
+                    globals.names[this.name.name],
                     parameterValues,
                     true,
                     refParams);
@@ -185,7 +219,7 @@ module Fl
     {
         pattern
         {
-            functionName:Name "=" expression:Expression
+            functionName:Name "=" expression:Expression ";"
         }
         
         method Call(parameters)
@@ -209,7 +243,7 @@ module Fl
     {
         pattern
         {
-            "print" str:StringExpression
+            "print" str:StringExpression ";"
         }
         
         method Run()
@@ -217,52 +251,7 @@ module Fl
             print this.str.Get...();
         }
     }
-    
-    /*class FunctionStatement : Statement
-    {
-        pattern
-        {
-            "func" name:Name "(" parameters:(Name ("," Expression)+)? ")"
-            "->" returnType:Name "{"
-            body:(Statement)+
-            "}"
-        }
-        
-        method Call(parameters)
-        {
-            for (n = 0; n < parameters.Length; n++)
-                scope.names[this.parameters[n].name] = parameters[n];
 
-            for (statement in this.body) {
-                _returnValue = statement.Run();
-                _returnType = statement.GetType();
-            }
-
-            if(_returnType == this.returnType.name)
-                return _returnValue;
-            else
-            {
-                return "Invalid return type: " + _returnType;
-            }
-        }
-        
-        method Run()
-        {
-            globals.names[this.name.name] = this;
-
-            for (statement in this.body) {
-                _returnType = statement;
-            }
-
-            if(_returnType.GetType() != this.returnType.name)
-            {
-                throw "Invalid return type: got " + _returnType.GetType() +", expected " + this.returnType.name + "\n" + _returnType.Source.ToString();
-            }
-        }
-    }*/
-    
-    
-    
     class TopLevelStatement
     {
         pattern

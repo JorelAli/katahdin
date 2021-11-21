@@ -26,9 +26,13 @@ swift
 }
 
 fl {
-    numberTwo = 2
-    add = 2 + 2
-    aLambda = x -> x
+    numberTwo = 2;
+
+    print "Fl!";
+
+    flGetRandom = getRandom;
+    flGetRandom2 = RANDOM 128 0;
+    aLambda = x -> x;
 }
 
 python
@@ -36,7 +40,8 @@ python
     print(getRandom())
     print(numberTwo())
     print(aLambda(200))
-    print(add())
+    print("Fl get random: " + flGetRandom())
+    print("Fl get random2: " + flGetRandom2())
 
     seed = 128
     randx = 0
