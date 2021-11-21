@@ -31,7 +31,14 @@ fl {
     print "Fl!";
 
     flGetRandom = getRandom;
-    flGetRandom2 = RANDOM 128 0;
+    
+    // Fortran functions don't have a return type, so we
+    // use this @<number> syntax to get the return type
+    // based on the given parameter provided. For example
+    // if we want to get the new value of the second parameter
+    // we use RANDOM@1.
+    flGetRandom2 = RANDOM@1 128 0;
+    
     aLambda = x -> x;
 }
 

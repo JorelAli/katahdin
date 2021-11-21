@@ -9,29 +9,14 @@ module Fl
     
     class NumberExpression : Expression
     {
-        // Very stupid, but hilariously stupid.
-        // "Allows" running Fortran code from Fl
-
-        field numericalValue;
-
         pattern
         {
             number:Number
         }
-
-        method Parsed()
-        {
-            this.numericalValue = this.number.Value;
-        }
         
         method Get()
         {
-            return this.numericalValue;
-        }
-
-        method Set(value)
-        {
-            this.numericalValue = value;
+            return this.number.Value;
         }
     }
 
@@ -140,7 +125,7 @@ module Fl
     {
         pattern
         {
-            name:Name parameters:(Expression)*
+            name:Name ("@" index:Number)? parameters:(Expression)*
         }
 
         method Get()
@@ -150,32 +135,21 @@ module Fl
                 parameterValues.Add(param.Get...());
             }
             parameterValues = parameterValues.ToArray();
+            callGlobal = false;
 
             // A "function call" with no parameters is just a variable.
-            if(parameterValues.Length == 0) {
+            if (parameterValues.Length == 0) {
                 if(scope.Parent.names.ContainsKey(this.name.name)) {
                     _returnValue = scope.Parent.names[this.name.name];
                 } else {
-                    refParams = null;
-                    _returnValue = Katahdin.CodeTree.CallNode.Call(
-                        globals.names[this.name.name],
-                        parameterValues,
-                        true,
-                        refParams);
-                    
-                    if (refParams != null)
-                    {
-                        for (n = 0; n < this.parameters.Count; n++)
-                        {
-                            if (refParams[n])
-                                this.parameters[n].Set...(parameterValues[n]);
-                        }
-                    }
+                    callGlobal = true;
                 }
                 
+            } else {
+                callGlobal = true;
             }
-            else {
-                // Please don't actually call this, everything blows up
+
+            if (callGlobal) {
                 refParams = null;
                 _returnValue = Katahdin.CodeTree.CallNode.Call(
                     globals.names[this.name.name],
@@ -185,11 +159,11 @@ module Fl
                 
                 if (refParams != null)
                 {
-                    for (n = 0; n < this.parameters.Count; n++)
+                    if (this.index == null)
                     {
-                        if (refParams[n])
-                            this.parameters[n].Set...(parameterValues[n]);
+                        throw "Index was not provided for function with " + refParams.Length + " return values. Consider using something like " + this.name.name + "@0.";
                     }
+                    _returnValue = parameterValues[this.index.Value];
                 }
             }
             return _returnValue;
