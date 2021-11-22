@@ -22,6 +22,25 @@ function httpget(url)
 
 module Python
 {
+    // Converts a list (System.Collections.ArrayList) to a string
+    function ListToString(list) {
+        result = "[";
+    
+        for (n = 0; n < list.Count; n++) {
+            if(list[n] is System.Collections.ArrayList) {
+                result = result + Python.ListToString(list[n]);
+            } else {
+                result = result + list[n];
+            }
+
+            if(n != list.Count - 1) {
+                result = result + ", ";
+            }
+        }
+
+        return result + "]";
+    }
+
     class Expression;
     
     class NumberExpression : Expression
@@ -247,6 +266,30 @@ module Python
     }
     
     precedence AssignExpression < EqualityExpression;
+
+    class ListExpression : Expression
+    {
+        pattern
+        {
+            "[" 
+            {
+                option dropPrecedence;
+                items:(Expression ("," Expression)*)?
+            }
+            "]"
+        }
+
+        method Get()
+        {
+            list = new List();
+        
+            for (n = 0; n < this.items.Count; n++) {
+                list.Add(this.items.get_Item(n).Get...());
+            }
+            
+            return list;
+        }
+    }
     
     class Statement;
     
@@ -274,7 +317,12 @@ module Python
         
         method Run()
         {
-            print this.expression.Get...();
+            // Pretty-printing lists instead of "System.Collections.ArrayList"
+            if(this.expression.Get...() is System.Collections.ArrayList) {
+                print Python.ListToString(this.expression.Get...());
+            } else {
+                print this.expression.Get...();
+            }
         }
     }
     

@@ -71,7 +71,7 @@ python
     print("Fl get random: " + flGetRandom())
     print("Fl get random2: " + flGetRandom2())
 
-    print(httpget("https://www.example.com"))
+    print([1, "hello", []])
 
     seed = 128
     randx = 0
@@ -80,3 +80,5 @@ python
         RANDOM(seed, randx)
         print(randx)
 }
+
+// print(httpget("https://www.example.com")) <-- Put in Python block
