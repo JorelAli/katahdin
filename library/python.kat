@@ -19,6 +19,9 @@ function httpget(url)
     return reader.ReadToEnd();
 }
 
+function listget(list, index) {
+    return list[index];
+}
 
 module Python
 {
@@ -297,7 +300,7 @@ module Python
         {
             option dropPrecedence;
             "["
-            expression:Expression "for" name:Name "in" list:Expression 
+            expression:Expression "for" name:Expression "in" list:Expression 
             ("if" condition:Expression)?
             "]"
         }
@@ -307,7 +310,7 @@ module Python
             list = new List();
 
             for (item in this.list.Get...()) {
-                this.expression.Set...(item);
+                this.name.Set...(item);
 
                 if (this.condition != null) {
                     if(this.condition.Get...()) {
