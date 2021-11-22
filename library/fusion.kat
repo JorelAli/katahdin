@@ -72,6 +72,8 @@ python
     print("Fl get random2: " + flGetRandom2())
 
     print([1, "hello", []])
+    print([ x for x in "hello" ])
+    print([ x for x in "hello" if x == "l"])
 
     seed = 128
     randx = 0

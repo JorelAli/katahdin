@@ -290,6 +290,50 @@ module Python
             return list;
         }
     }
+
+    class ListComprehensionExpression : Expression
+    {
+        pattern
+        {
+            option dropPrecedence;
+            "["
+            expression:Expression "for" name:Name "in" list:Expression 
+            ("if" condition:Expression)?
+            "]"
+        }
+
+        method Get()
+        {
+            list = new List();
+
+            for (item in this.list.Get...()) {
+                this.expression.Set...(item);
+
+                if (this.condition != null) {
+                    if(this.condition.Get...()) {
+                        list.Add(this.expression.Get...());
+                    }
+                } else {
+                    list.Add(this.expression.Get...());
+                }
+            }
+
+            return list;
+        }
+    }
+
+    class BoolExpression : Expression
+    {
+        pattern
+        {
+            option buildTextNodes = true;
+            val:("True" | "False")
+        }
+
+        method Get() {
+            return this.val == "True";
+        }
+    }
     
     class Statement;
     
