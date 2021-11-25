@@ -47,7 +47,7 @@ fl {
     aLambda = x -> x;
 }
 
-brainfuck " Hello!" {
+brainfuck function printInput {
     +++++ +++++
     +++++ +++++
     +++++ +++++
@@ -59,7 +59,7 @@ brainfuck " Hello!" {
 }
 
 // Taken straight from Wikipedia: https://en.wikipedia.org/wiki/Brainfuck#Hello_World!
-brainfuck {
+brainfuck function bfhello {
     ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
 }
 
@@ -88,6 +88,11 @@ python {
     matrix = [[1, 2], [3,4], [5,6], [7,8]]
     transpose = [[listget(row, i) for row in matrix] for i in range(2)]
     print (transpose)
+}
+
+python {
+    print(bfhello())
+    print(printInput("hello!!!!!!!!!!!!"))
 }
 
 // print(httpget("https://www.example.com")) <-- Put in Python block

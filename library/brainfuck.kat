@@ -12,7 +12,7 @@ module Brainfuck
         return false;
     }
 
-    class BrainfuckCode
+    class BrainfuckCode : Statement
     {
         field stack;             // Memory stack
         field index;             // Stack pointer
@@ -26,15 +26,30 @@ module Brainfuck
             ops:("." | "+" | "-" | "[" | "]" | "," | "<" | ">")+
         }
 
-        method Run(input)
+        method Call(input)
         {
+            // Runtime checks to see if we can actually call this function
+            if(input.Length == 1) {
+                input = input[0];
+            } else if(input.Length == 0) {
+                input = "";
+
+                for(i = 0; i < this.ops.Count; i++) {
+                    if(this.ops[i] == ",") {
+                        throw "Invalid number of parameters, function expects 1 but received 0";
+                        break;
+                    }
+                }
+
+            } else {
+                throw "Invalid number of parameters, expected 1 but received " + input.Length;
+            }
+
             this.stack = [];
             this.index = 0;
             this.output = "";
             this.inputIndex = 0;
             this.bracketPairNumber = 0;
-
-            Brainfuck.or(true, false);
 
             // Construct a mapping of square brackets to their corresponding
             // index in the list.
@@ -100,40 +115,22 @@ module Brainfuck
                 }
             }
 
-            if(this.output.Length > 0) {
-                print this.output;
-            }
-
+            return this.output;
         }
     }
 
     class Program
     {
-        // Brainfuck can have "input". Typically, this is input as and when
-        // it is needed, but it can also be provided in full and the
-        // program then reads characters as and when it needs it. We'll use
-        // either String (a string literal provided to the program) or a 
-        // Name (a variable name provided to the program which is in global)
-        // scope.
+        // Brainfuck declares functions in the form:
+        // brainfuck function <functionName> { <Brainfuck code> }
         pattern
         {
-            (input:String | inputName:Name)? "{" code:BrainfuckCode "}"
+            ("function" | "func" | "fun" | "fn") inputName:Name "{" code:BrainfuckCode "}"
         }
 
         method Parsed()
         {
-            input = "";
-            if(this.input == null) {
-                input = "";
-            } else {
-                input = this.input.Text;
-            }
-
-            if(this.inputName != null) {
-                input = globals.names[this.inputName.name].Get();
-            }
-
-            this.code.Run(input);
+            globals.names[this.inputName.name] = this.code;
         }
     }
 }
