@@ -1,0 +1,8 @@
+import "asql.kat";
+
+starting with 2 qubits {
+    Apply the H gate to the 1st qubit then
+    Measure the 2nd qubit then
+    Measure the 1st qubit then
+    Return the 1st and 2nd qubits
+}

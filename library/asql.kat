@@ -1,0 +1,208 @@
+module ASQL
+{
+    class Expression;
+    
+    class NumberExpression : Expression
+    {
+        pattern
+        {
+            number:Number
+        }
+        
+        method Get()
+        {
+            return this.number.Value;
+        }
+    }
+
+    class OrdinalNumber : Expression
+    {
+        pattern
+        {
+            option buildTextNodes = true;
+            number:Number ending:("st" | "nd" | "rd" | "th")
+        }
+
+        method Parsed()
+        {
+            numStr = this.number.Value.ToString();
+            partialErrMsg = "Invalid ordinal number '" + numStr + this.ending + "' at " + this.number.Source.ToString() + ". ";
+
+            lastChar = numStr[numStr.Length - 1];
+
+            if(lastChar == "1") {
+                if(this.ending != "st") {
+                    throw partialErrMsg + "Did you mean '" + numStr + "st'?";
+                }
+            } else if(lastChar == "2") {
+                if(this.ending != "nd") {
+                    throw partialErrMsg + "Did you mean '" + numStr + "nd'?";
+                }
+            } else if(lastChar == "3") {
+                if(this.ending != "rd") {
+                    throw partialErrMsg + "Did you mean '" + numStr + "rd'?";
+                }
+            } else {
+                if(this.ending != "th") {
+                    throw partialErrMsg + "Did you mean '" + numStr + "th'?";
+                }
+            }
+        }
+        
+        method Get()
+        {
+            return this.number.Value;
+        }
+    }
+
+    class OrdinalSequence : Expression
+    {
+        pattern
+        {
+            n:OrdinalNumber ("," ns:OrdinalNumber)* ("and" ne:OrdinalNumber)?
+        }
+
+        method Get()
+        {
+            result = [];
+            result.Add(this.n.Get());
+
+            if(this.ns != null) {
+                if(this.ns is ASQL.OrdinalNumber) {
+                    result.Add(this.ns.Get());
+                } else {
+                    for(num in this.ns) {
+                        result.Add(num.Get());
+                    }
+                }
+                
+            }
+
+            if(this.ne != null) {
+                result.Add(this.ne.Get());
+            }
+            return result;
+        }
+    }
+
+    class Statement;
+
+    class InitializeStatement : Statement
+    {
+        pattern
+        {
+            "with" n:NumberExpression "qubits"
+        }
+
+        method Parsed()
+        {
+            qubits = [];
+            for(i = 0; i < this.n.Get(); i++) {
+                qubits.Add(0);
+            }
+
+            scope.Parent.names["qubits"] = qubits;
+        }
+    }
+
+    class HStatement : Statement
+    {
+        pattern
+        {
+            "Apply" "the" "H" "gate" "to" "the" n:OrdinalNumber "qubit" "then"
+        }
+
+        method Parsed()
+        {
+            // A really really REALLY bad implementation of the Hadamard gate
+            scope.Parent.names["qubits"][this.n.Get() - 1] = 0.5;
+        }
+    }
+
+    class MeasureStatement : Statement
+    {
+        pattern
+        {
+            "Measure" "the" n:OrdinalNumber "qubit" "then"
+        }
+
+        method Parsed()
+        {
+            // TODO: Collapse state along the lines of:
+            // if randomDouble <= 0.2 then 0 else 1
+            random = new System.Random();
+            probability = scope.Parent.names["qubits"][this.n.Get() - 1];
+
+            // p > 0.5 we want to collapse towards 1
+            if(probability == 1) {
+                scope.Parent.names["qubits"][this.n.Get() - 1] = 1;
+            } else if(probability == 0) {
+                scope.Parent.names["qubits"][this.n.Get() - 1] = 0;
+            } else if(random.NextDouble() < probability) {
+                scope.Parent.names["qubits"][this.n.Get() - 1] = 0;
+            } else {
+                scope.Parent.names["qubits"][this.n.Get() - 1] = 1;
+            }
+        }
+    }
+
+    class ReturnStatement : Statement
+    {
+        pattern
+        {
+            option dropPrecedence;
+            "Return" "the" ns:OrdinalSequence ("qubit" | "qubits")
+        }
+
+        method Parsed()
+        {
+            outStr = "[";
+            for(index in this.ns.Get())
+            {
+                if(index > scope.Parent.names["qubits"].Count) {
+                    throw "Invalid qubit index '" + index + "' at " + this.ns.Source.ToString() + ". ";
+                }
+
+                qubitVal = scope.Parent.names["qubits"][index - 1];
+                if(qubitVal == 1) {
+                    outStr = outStr + "1";
+                } else if(qubitVal == 0) {
+                    outStr = outStr + "0";
+                } else {
+                    outStr = outStr + "ψ";
+                }
+
+                if( index != this.ns.Get().Count ) {
+                    outStr = outStr + ", ";
+                }
+            }
+            outStr = outStr + "]";
+            print outStr;
+            
+        }
+    }
+    
+    class Program
+    {
+        pattern
+        {
+            init:InitializeStatement "{" statements:Statement+ "}"
+        }
+        
+        method Parsed()
+        {
+        }
+    }
+}
+
+class ASQLStatement : Statement
+{
+    pattern
+    {
+        "starting" ASQL.Program
+    }
+
+    method Run()
+    {
+    }
+}
